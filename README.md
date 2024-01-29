@@ -1,16 +1,18 @@
-# Starting a course of COVID-19 vaccination before pregnancy and future pregnancy outcomes
+# COVID-19 vaccination prior to pregnancy and future birth outcomes: findings from a nation-wide electronic health records cohort study
 
 ## Project description
 
-Description will be added here.
+COVID-19 vaccination in pregnancy is recommended by the World Health Organisation as effective and safe. However, there remains a lack of robust evidence to inform vaccination choices for women of childbearing potential in relation to their future pregnancies.
+
+Here we investigated the association between starting a course of COVID-19 vaccination before pregnancy and future birth outcomes.
 
 ## How to cite this work
 > Citation details to follow
 
 ## Contents
 
-* [View the analysis code used in NHS Digital's TRE for England](https://github.com/BHFDSC/CCU036_01/tree/main/code)
-* [View the phenotyping algorithms and codelists used in NHS Digital's TRE for England](https://github.com/BHFDSC/CCU036_01/tree/main/phenotypes)
+* [View the analysis code used in NHS England's SDE for England](https://github.com/BHFDSC/CCU036_01/tree/main/code)
+* [View the phenotyping algorithms and codelists used in NHS England's SDE for England](https://github.com/BHFDSC/CCU036_01/tree/main/phenotypes)
 
 ## Project approval
 
