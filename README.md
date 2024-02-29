@@ -1,4 +1,4 @@
-# COVID-19 vaccination prior to pregnancy and future birth outcomes: findings from a nation-wide electronic health records cohort study
+# COVID-19 vaccination and future birth outcomes: findings from an England-wide cohort study of 186,990 women vaccinated before pregnancy
 
 ## Project description
 
