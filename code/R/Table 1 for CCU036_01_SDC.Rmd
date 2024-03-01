@@ -1,0 +1,609 @@
+---
+title: "Descriptive table for CCU036_01 vaccination analysis"
+author: " "
+date: "04/09/2023"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Overview
+
+CHD table1
+
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+library(plyr)
+library(knitr)
+library(dplyr)
+library(tableone)
+library(table1)
+library(tidyverse)
+library(kableExtra)
+library(table1)
+library(data.table)
+# library(epiR)
+library(knitr)
+
+library(readr)
+setwd("D:/PhotonUser/My Files/Home Folder/collab/CCU036_01/data")
+
+data <- read_csv("ccu036_01_analysis_data_04092023.csv")
+
+names(data) <- tolower(colnames(data))
+
+
+```
+
+
+
+
+
+## Patients clinical and demographic characteristics
+
+
+```{r echo=FALSE}
+
+
+data <- data %>% 
+  dplyr::filter(exposure_vaccine_r!=4) %>% dplyr::mutate(vacc_covid_r=ifelse(exposure_vaccine_r==0,0,1))%>%
+  dplyr::mutate(VACC_1ST_DUR_DATE=ifelse(vacc_covid_r==1,dose1_dt,NA ))
+data$VACC_1ST_DUR_DATE<- as.Date(data$VACC_1ST_DUR_DATE, origin='1970-01-01')
+data$vacc_covid_date_r <- data$VACC_1ST_DUR_DATE
+
+data$vacc_covid <- ordered(data$vacc_covid_r,levels=c(0,1),labels=c("Unexposed", "Exposed" ))
+
+dat <- data %>% dplyr::group_by(vacc_covid) %>% dplyr::summarise(count=n()) %>% ungroup()
+
+dat$count_n <- round_any(dat$count,5)
+
+dat <- dat %>% dplyr::mutate(total=sum(count_n), perc=(count_n/total)*100) %>% dplyr::select(vacc_covid, count_n, perc)
+
+knitr::kable(dat, digits=1, align="lrr", caption = "Primary exposure")
+```
+
+
+# Age group
+```{r, echo=FALSE}
+
+
+dat1_a <- data %>%  dplyr::filter(vacc_covid=="Exposed") %>% dplyr::group_by(agegp) %>% dplyr::summarise(count=n())%>% ungroup()
+
+dat1_a <- dat1_a %>% dplyr::mutate(count_a=round_any(count,5), total=sum(count_a),perc_a=(count_a/total)*100) %>% dplyr::select(agegp, count_a, perc_a)
+
+dat1_b <- data %>%  dplyr::filter(vacc_covid=="Unexposed") %>% dplyr::group_by(agegp) %>% dplyr::summarise(count=n())%>% ungroup()
+
+dat1_b <- dat1_b %>% dplyr::mutate(count_b=round_any(count,5),total=sum(count_b),perc_b=(count_b/total)*100) %>% dplyr::select(agegp, count_b, perc_b)
+
+dat1_n <- data %>%  dplyr::group_by(agegp) %>% dplyr::summarise(count=n())%>% ungroup()
+
+dat1_n <- dat1_n %>%  dplyr::mutate(count_n=round_any(count,5),total=sum(count_n),perc_n=(count_n/total)*100) %>% dplyr::select(agegp, count_n, perc_n)
+
+dat1_ab <- merge(dat1_a, dat1_b, by="agegp")
+dat1 <- merge(dat1_ab,dat1_n, by="agegp")
+
+knitr::kable(dat1, digits=1, align="lrrrrrr", caption = "Age group")
+
+```
+
+
+
+# JCVI groups
+```{r, echo=FALSE}
+
+dat1_a <- data %>% dplyr::filter(vacc_covid=="Exposed") %>% dplyr::group_by(jcvi_group_min) %>% dplyr::summarise(count=n())%>%  ungroup()
+
+dat1_a <- dat1_a %>% dplyr::mutate(count_a=round_any(count,5),total=sum(count_a), perc_a=(count_a/total)*100) %>% dplyr::select(jcvi_group_min, count_a, perc_a)
+
+dat1_b <- data %>% dplyr::filter(vacc_covid=="Unexposed") %>% dplyr::group_by(jcvi_group_min) %>% dplyr::summarise(count=n())%>%ungroup()
+
+dat1_b <- dat1_b %>% dplyr::mutate(count_b=round_any(count,5),total=sum(count_b),perc_b=(count_b/total)*100) %>% dplyr::select(jcvi_group_min, count_b, perc_b)
+
+dat1_n <- data %>% dplyr::group_by(jcvi_group_min) %>% dplyr::summarise(count=n())%>% ungroup()
+
+dat1_n <- dat1_n %>%  dplyr::mutate(count_n=round_any(count,5),total=sum(count_n),perc_n=(count_n/total)*100) %>% dplyr::select(jcvi_group_min, count_n, perc_n)
+
+dat1_ab <- merge(dat1_a, dat1_b, by="jcvi_group_min")
+dat1 <- merge(dat1_ab,dat1_n, by="jcvi_group_min")
+
+knitr::kable(dat1, digits=1, align="lrrrrrr", caption = "JCVI group")
+
+```
+
+
+
+# Ethnicity
+
+```{r, echo=FALSE}
+
+dat2_a <- data %>% dplyr::filter(vacc_covid=="Exposed") %>% dplyr::group_by(cov_ethnicity) %>% dplyr::summarise(count=n())%>% ungroup()
+
+dat2_a <- dat2_a %>% dplyr::mutate(count_a=round_any(count,5),total=sum(count_a), perc_a=(count_a/total)*100) %>% dplyr::select(cov_ethnicity, count_a, perc_a)
+
+dat2_b <- data %>% dplyr::filter(vacc_covid=="Unexposed") %>% dplyr::group_by(cov_ethnicity) %>% dplyr::summarise(count=n())%>% ungroup()
+
+dat2_b <- dat2_b %>% dplyr::mutate(count_b=round_any(count,5),total=sum(count_b),perc_b=(count_b/total)*100) %>% dplyr::select(cov_ethnicity, count_b, perc_b)
+
+dat2_n <- data %>% dplyr::group_by(cov_ethnicity) %>% dplyr::summarise(count=n())%>% ungroup()
+
+dat2_n <- dat2_n %>% dplyr::mutate(count_n=round_any(count,5),total=sum(count_n), perc_n=(count_n/total)*100) %>% dplyr::select(cov_ethnicity, count_n, perc_n)
+
+dat2_ab <- merge(dat2_a, dat2_b, by="cov_ethnicity")
+dat2 <- merge(dat2_ab,dat2_n, by="cov_ethnicity")
+
+knitr::kable(dat2, digits=1, align="lrrrrrr", caption = "Ethnic group new")
+
+```
+
+
+# Region
+```{r, echo=FALSE}
+dat3_a <- data %>% dplyr::filter(vacc_covid=="Exposed") %>% dplyr::group_by(region) %>% dplyr::summarise(count=n())%>% ungroup()
+
+dat3_a <- dat3_a %>% dplyr::mutate(count_a=round_any(count,5), total=sum(count_a),perc_a=(count_a/total)*100) %>% dplyr::select(region, count_a, perc_a)
+
+dat3_b <- data %>% dplyr::filter(vacc_covid=="Unexposed") %>% dplyr::group_by(region) %>% dplyr::summarise(count=n())%>% ungroup()
+
+dat3_b <- dat3_b %>% dplyr::mutate(count_b=round_any(count,5), total=sum(count_b),perc_b=(count_b/total)*100) %>% dplyr::select(region, count_b, perc_b)
+
+dat3_n <- data %>% dplyr::group_by(region) %>% dplyr::summarise(count=n())%>% ungroup()
+
+dat3_n <- dat3_n %>% dplyr::mutate(count_n=round_any(count,5),total=sum(count_n),perc_n=(count_n/total)*100) %>% dplyr::select(region, count_n, perc_n)
+
+dat3_ab <- merge(dat3_a, dat3_b, by="region")
+dat3 <- merge(dat3_ab,dat3_n, by="region")
+
+knitr::kable(dat3, digits=1, align="lrrrrrr", caption = "Region")
+```
+
+# Deprivation index
+```{r echo=FALSE}
+
+dat4_a <- data %>% dplyr::filter(vacc_covid=="Exposed") %>% dplyr::group_by(cov_deprivation) %>% dplyr::summarise(count=n())%>% ungroup()
+
+dat4_a <- dat4_a %>% dplyr::mutate(count_a=round_any(count,5),total=sum(count_a),perc_a=(count_a/total)*100) %>% dplyr::select(cov_deprivation, count_a, perc_a)
+
+dat4_b <- data %>% dplyr::filter(vacc_covid=="Unexposed") %>% dplyr::group_by(cov_deprivation) %>% dplyr::summarise(count=n())%>% ungroup()
+
+dat4_b <- dat4_b %>% dplyr::mutate(count_b=round_any(count,5),total=sum(count_b),perc_b=(count_b/total)*100) %>% dplyr::select(cov_deprivation, count_b, perc_b)
+
+dat4_n <- data %>% dplyr::group_by(cov_deprivation) %>% dplyr::summarise(count=n())%>% ungroup()
+
+dat4_n <- dat4_n %>% dplyr::mutate(count_n=round_any(count,5),total=sum(count_n),perc_n=(count_n/total)*100) %>% dplyr::select(cov_deprivation, count_n, perc_n)
+
+dat4_ab <- merge(dat4_a, dat4_b, by="cov_deprivation")
+dat4 <- merge(dat4_ab,dat4_n, by="cov_deprivation")
+
+knitr::kable(dat4, digits=1, align="lrrrrrr", caption = "Deprivation index")
+```
+
+# Medical History - multiparous
+```{r echo=FALSE}
+dat5_a <- data %>% dplyr::filter(vacc_covid=="Exposed") %>% dplyr::group_by(cov_hx_pregnancy_max) %>% dplyr::summarise(count=n())%>% ungroup()
+
+dat5_a <- dat5_a %>% dplyr::mutate(count_a=round_any(count,5),total=sum(count_a),perc_a=(count_a/total)*100) %>% dplyr::select(cov_hx_pregnancy_max, count_a, perc_a)
+
+dat5_b <- data %>% dplyr::filter(vacc_covid=="Unexposed") %>% dplyr::group_by(cov_hx_pregnancy_max) %>% dplyr::summarise(count=n())%>% ungroup()
+
+dat5_b <- dat5_b %>% dplyr::mutate(count_b=round_any(count,5),total=sum(count_b),perc_b=(count_b/total)*100) %>% dplyr::select(cov_hx_pregnancy_max, count_b, perc_b)
+
+dat5_n <- data %>% dplyr::group_by(cov_hx_pregnancy_max) %>% dplyr::summarise(count=n())%>% ungroup()
+
+dat5_n <- dat5_n %>% dplyr::mutate(count_n=round_any(count,5),total=sum(count_n),perc_n=(count_n/total)*100) %>% dplyr::select(cov_hx_pregnancy_max, count_n, perc_n)
+
+dat5_ab <- merge(dat5_a, dat5_b, by="cov_hx_pregnancy_max")
+dat5 <- merge(dat5_ab,dat5_n, by="cov_hx_pregnancy_max")
+
+knitr::kable(dat5, digits=1, align="lrrrrrr", caption = "Multiparous")
+```
+
+# Obesity
+```{r echo=FALSE}
+
+dat6_a <- data %>% dplyr::filter(vacc_covid=="Exposed") %>% dplyr::group_by(cov_hx_bmi_obesity_flag) %>% dplyr::summarise(count=n())%>% ungroup()
+
+dat6_a <- dat6_a %>% dplyr::mutate(count_a=round_any(count,5),total=sum(count_a),perc_a=(count_a/total)*100) %>% dplyr::select(cov_hx_bmi_obesity_flag, count_a, perc_a)
+
+dat6_b <- data %>% dplyr::filter(vacc_covid=="Unexposed") %>% dplyr::group_by(cov_hx_bmi_obesity_flag) %>% dplyr::summarise(count=n())%>% ungroup()
+
+dat6_b <- dat6_b %>% dplyr::mutate(count_b=round_any(count,5),total=sum(count_b),perc_b=(count_b/total)*100) %>% dplyr::select(cov_hx_bmi_obesity_flag, count_b, perc_b)
+
+dat6_n <- data %>% dplyr::group_by(cov_hx_bmi_obesity_flag) %>% dplyr::summarise(count=n())%>% ungroup()
+
+dat6_n <- dat6_n %>% dplyr::mutate(count_n=round_any(count,5),total=sum(count_n),perc_n=(count_n/total)*100) %>% dplyr::select(cov_hx_bmi_obesity_flag, count_n, perc_n)
+
+dat6_ab <- merge(dat6_a, dat6_b, by="cov_hx_bmi_obesity_flag")
+dat6 <- merge(dat6_ab,dat6_n, by="cov_hx_bmi_obesity_flag")
+dat6 <- dat6 %>% dplyr::filter(cov_hx_bmi_obesity_flag==1)
+
+knitr::kable(dat6, digits=1, align="lrrrrrr", caption = "Obesity")
+```
+
+# Hypertension
+```{r echo=FALSE}
+dat7_a <- data %>% dplyr::filter(vacc_covid=="Exposed") %>% dplyr::group_by(cov_hx_hypertensive_dis) %>% dplyr::summarise(count=n())%>% ungroup()
+
+dat7_a <- dat7_a %>% dplyr::mutate(count_a=round_any(count,5),total=sum(count_a),perc_a=(count_a/total)*100) %>% dplyr::select(cov_hx_hypertensive_dis, count_a, perc_a)
+
+dat7_b <- data %>% dplyr::filter(vacc_covid=="Unexposed") %>% dplyr::group_by(cov_hx_hypertensive_dis) %>% dplyr::summarise(count=n())%>% ungroup()
+
+dat7_b <- dat7_b %>% dplyr::mutate(count_b=round_any(count,5),total=sum(count_b),perc_b=(count_b/total)*100) %>% dplyr::select(cov_hx_hypertensive_dis, count_b, perc_b)
+
+dat7_n <- data %>% dplyr::group_by(cov_hx_hypertensive_dis) %>% dplyr::summarise(count=n())%>% ungroup()
+
+dat7_n <- dat7_n %>% dplyr::mutate(count_n=round_any(count,5),total=sum(count_n),perc_n=(count_n/total)*100) %>% dplyr::select(cov_hx_hypertensive_dis, count_n, perc_n)
+
+dat7_ab <- merge(dat7_a, dat7_b, by="cov_hx_hypertensive_dis")
+dat7 <- merge(dat7_ab,dat7_n, by="cov_hx_hypertensive_dis")
+dat7 <- dat7 %>% dplyr::filter(cov_hx_hypertensive_dis==1)
+
+knitr::kable(dat7, digits=1, align="lrrrrrr", caption = "HTN")
+```
+
+# COVID-19
+```{r echo=FALSE}
+dat8_a <- data %>% dplyr::filter(vacc_covid=="Exposed") %>% dplyr::group_by(cov_hx_covid19_flag) %>% dplyr::summarise(count=n())%>% ungroup()
+
+dat8_a <- dat8_a %>% dplyr::mutate(count_a=round_any(count,5),total=sum(count_a),perc_a=(count_a/total)*100) %>% dplyr::select(cov_hx_covid19_flag, count_a, perc_a)
+
+dat8_b <- data %>% dplyr::filter(vacc_covid=="Unexposed") %>% dplyr::group_by(cov_hx_covid19_flag) %>% dplyr::summarise(count=n())%>% ungroup()
+
+dat8_b <- dat8_b %>% dplyr::mutate(count_b=round_any(count,5),total=sum(count_b),perc_b=(count_b/total)*100) %>% dplyr::select(cov_hx_covid19_flag, count_b, perc_b)
+
+dat8_n <- data %>% dplyr::group_by(cov_hx_covid19_flag) %>% dplyr::summarise(count=n())%>% ungroup()
+
+dat8_n <- dat8_n %>% dplyr::mutate(count_n=round_any(count,5),total=sum(count_n),perc_n=(count_n/total)*100) %>% dplyr::select(cov_hx_covid19_flag, count_n, perc_n)
+
+dat8_ab <- merge(dat8_a, dat8_b, by="cov_hx_covid19_flag")
+dat8 <- merge(dat8_ab,dat8_n, by="cov_hx_covid19_flag")
+dat8 <- dat8 %>% dplyr::filter(cov_hx_covid19_flag==1)
+
+knitr::kable(dat8, digits=1, align="lrrrrrr", caption = "COVID-19")
+```
+
+# Diabetes
+```{r echo=FALSE}
+dat9_a <- data %>% dplyr::filter(vacc_covid=="Exposed") %>% dplyr::group_by(cov_hx_diabetes_dis) %>% dplyr::summarise(count=n())%>% ungroup()
+
+dat9_a <- dat9_a %>% dplyr::mutate(count_a=round_any(count,5),total=sum(count_a),perc_a=(count_a/total)*100) %>% dplyr::select(cov_hx_diabetes_dis, count_a, perc_a)
+
+dat9_b <- data %>% dplyr::filter(vacc_covid=="Unexposed") %>% dplyr::group_by(cov_hx_diabetes_dis) %>% dplyr::summarise(count=n())%>% ungroup()
+
+dat9_b <- dat9_b %>% dplyr::mutate(count_b=round_any(count,5),total=sum(count_b),perc_b=(count_b/total)*100) %>% dplyr::select(cov_hx_diabetes_dis, count_b, perc_b)
+
+dat9_n <- data %>% dplyr::group_by(cov_hx_diabetes_dis) %>% dplyr::summarise(count=n())%>% ungroup()
+
+dat9_n <- dat9_n %>% dplyr::mutate(count_n=round_any(count,5),total=sum(count_n),perc_n=(count_n/total)*100) %>% dplyr::select(cov_hx_diabetes_dis, count_n, perc_n)
+
+
+dat9_ab <- merge(dat9_a, dat9_b, by="cov_hx_diabetes_dis")
+dat9 <- merge(dat9_ab,dat9_n, by="cov_hx_diabetes_dis")
+dat9 <- dat9 %>% dplyr::filter(cov_hx_diabetes_dis==1)
+
+knitr::kable(dat9, digits=1, align="lrrrrrr", caption = "Diabetes")
+```
+
+# PCOS
+```{r echo=FALSE}
+
+dat10_a <- data %>% dplyr::filter(vacc_covid=="Exposed") %>% dplyr::group_by(cov_hx_pcos_flag) %>% dplyr::summarise(count=n())%>% ungroup()
+
+dat10_a <- dat10_a %>% dplyr::mutate(count_a=round_any(count,5),total=sum(count_a),perc_a=(count_a/total)*100) %>% dplyr::select(cov_hx_pcos_flag, count_a, perc_a)
+
+dat10_b <- data %>% dplyr::filter(vacc_covid=="Unexposed") %>% dplyr::group_by(cov_hx_pcos_flag) %>% dplyr::summarise(count=n())%>% ungroup()
+
+dat10_b <- dat10_b %>% dplyr::mutate(count_b=round_any(count,5),total=sum(count_b),perc_b=(count_b/total)*100) %>% dplyr::select(cov_hx_pcos_flag, count_b, perc_b)
+
+dat10_n <- data %>% dplyr::group_by(cov_hx_pcos_flag) %>% dplyr::summarise(count=n())%>% ungroup()
+
+dat10_n <- dat10_n %>% dplyr::mutate(count_n=round_any(count,5),total=sum(count_n),perc_n=(count_n/total)*100) %>% dplyr::select(cov_hx_pcos_flag, count_n, perc_n)
+
+dat10_ab <- merge(dat10_a, dat10_b, by="cov_hx_pcos_flag")
+dat10 <- merge(dat10_ab,dat10_n, by="cov_hx_pcos_flag")
+dat10 <- dat10 %>% dplyr::filter(cov_hx_pcos_flag==1)
+
+knitr::kable(dat10, digits=1, align="lrrrrrr", caption = "PCOS")
+```
+
+# DVT/PE
+```{r echo=FALSE}
+dat11_a <- data %>% dplyr::filter(vacc_covid=="Exposed") %>% dplyr::group_by(cov_hx_dvt_pe) %>% dplyr::summarise(count=n())%>% ungroup()
+
+dat11_a <- dat11_a %>% dplyr::mutate(count_a=round_any(count,5),total=sum(count_a),perc_a=(count_a/total)*100) %>% dplyr::select(cov_hx_dvt_pe, count_a, perc_a)
+
+dat11_b <- data %>% dplyr::filter(vacc_covid=="Unexposed") %>% dplyr::group_by(cov_hx_dvt_pe) %>% dplyr::summarise(count=n())%>% ungroup()
+
+dat11_b <- dat11_b %>% dplyr::mutate(count_b=round_any(count,5),total=sum(count_b),perc_b=(count_b/total)*100) %>% dplyr::select(cov_hx_dvt_pe, count_b, perc_b)
+
+dat11_n <- data %>% dplyr::group_by(cov_hx_dvt_pe) %>% dplyr::summarise(count=n())%>% ungroup()
+
+dat11_n <- dat11_n %>% dplyr::mutate(count_n=round_any(count,5),total=sum(count_n),perc_n=(count_n/total)*100) %>% dplyr::select(cov_hx_dvt_pe, count_n, perc_n)
+
+dat11_ab <- merge(dat11_a, dat11_b, by="cov_hx_dvt_pe")
+dat11 <- merge(dat11_ab,dat11_n, by="cov_hx_dvt_pe")
+dat11 <- dat11 %>% dplyr::filter(cov_hx_dvt_pe==1)
+
+knitr::kable(dat11, digits=1, align="lrrrrrr", caption = "DVT/PE")
+```
+
+# Thrombophilia
+```{r echo=FALSE}
+
+dat12_a <- data %>% dplyr::filter(vacc_covid=="Exposed") %>% dplyr::group_by(cov_hx_thrombophilia_flag) %>% dplyr::summarise(count=n())%>% ungroup()
+
+dat12_a <- dat12_a %>% dplyr::mutate(count_a=round_any(count,5),total=sum(count_a),perc_a=(count_a/total)*100) %>% dplyr::select(cov_hx_thrombophilia_flag, count_a, perc_a)
+
+dat12_b <- data %>% dplyr::filter(vacc_covid=="Unexposed") %>% dplyr::group_by(cov_hx_thrombophilia_flag) %>% dplyr::summarise(count=n())%>% ungroup()
+
+dat12_b <- dat12_b %>% dplyr::mutate(count_b=round_any(count,5),total=sum(count_b),perc_b=(count_b/total)*100) %>% dplyr::select(cov_hx_thrombophilia_flag, count_b, perc_b)
+
+dat12_n <- data %>% dplyr::group_by(cov_hx_thrombophilia_flag) %>% dplyr::summarise(count=n())%>% ungroup()
+
+dat12_n <- dat12_n %>% dplyr::mutate(count_n=round_any(count,5),total=sum(count_n),perc_n=(count_n/total)*100) %>% dplyr::select(cov_hx_thrombophilia_flag, count_n, perc_n)
+
+dat12_ab <- merge(dat12_a, dat12_b, by="cov_hx_thrombophilia_flag")
+dat12 <- merge(dat12_ab,dat12_n, by="cov_hx_thrombophilia_flag")
+dat12 <- dat12 %>% dplyr::filter(cov_hx_thrombophilia_flag==1)
+
+knitr::kable(dat12, digits=1, align="lrrrrrr", caption = "Thrombophilia")
+```
+
+# Venous event
+
+```{r echo=FALSE}
+dat13_a <- data %>% dplyr::filter(vacc_covid=="Exposed") %>% dplyr::group_by(cov_hx_venous_flag) %>% dplyr::summarise(count=n())%>% ungroup()
+
+dat13_a <- dat13_a %>% dplyr::mutate(count_a=round_any(count,5),total=sum(count_a),perc_a=(count_a/total)*100) %>% dplyr::select(cov_hx_venous_flag, count_a, perc_a)
+
+dat13_b <- data %>% dplyr::filter(vacc_covid=="Unexposed") %>% dplyr::group_by(cov_hx_venous_flag) %>% dplyr::summarise(count=n())%>% ungroup()
+
+dat13_b <- dat13_b %>% dplyr::mutate(count_b=round_any(count,5),total=sum(count_b),perc_b=(count_b/total)*100) %>% dplyr::select(cov_hx_venous_flag, count_b, perc_b)
+
+dat13_n <- data %>% dplyr::group_by(cov_hx_venous_flag) %>% dplyr::summarise(count=n())%>% ungroup()
+
+dat13_n <- dat13_n %>% dplyr::mutate(count_n=round_any(count,5),total=sum(count_n),perc_n=(count_n/total)*100) %>% dplyr::select(cov_hx_venous_flag, count_n, perc_n)
+
+dat13_ab <- merge(dat13_a, dat13_b, by="cov_hx_venous_flag")
+dat13 <- merge(dat13_ab,dat13_n, by="cov_hx_venous_flag")
+dat13 <- dat13 %>% dplyr::filter(cov_hx_venous_flag==1)
+
+knitr::kable(dat13, digits=1, align="lrrrrrr", caption = "Venous thormbotic events")
+```
+
+# Chronic Kidney disease
+```{r echo=FALSE}
+dat14_a <- data %>% dplyr::filter(vacc_covid=="Exposed") %>% dplyr::group_by(cov_hx_ckd_flag) %>% dplyr::summarise(count=n())%>% ungroup()
+
+dat14_a <- dat14_a %>% dplyr::mutate(count_a=round_any(count,5),total=sum(count_a),perc_a=(count_a/total)*100) %>% dplyr::select(cov_hx_ckd_flag, count_a, perc_a)
+
+dat14_b <- data %>% dplyr::filter(vacc_covid=="Unexposed") %>% dplyr::group_by(cov_hx_ckd_flag) %>% dplyr::summarise(count=n())%>% ungroup()
+
+dat14_b <- dat14_b %>% dplyr::mutate(count_b=round_any(count,5),total=sum(count_b),perc_b=(count_b/total)*100) %>% dplyr::select(cov_hx_ckd_flag, count_b, perc_b)
+
+dat14_n <- data %>% dplyr::group_by(cov_hx_ckd_flag) %>% dplyr::summarise(count=n())%>% ungroup()
+
+dat14_n <- dat14_n %>% dplyr::mutate(count_n=round_any(count,5),total=sum(count_n),perc_n=(count_n/total)*100) %>% dplyr::select(cov_hx_ckd_flag, count_n, perc_n)
+
+dat14_ab <- merge(dat14_a, dat14_b, by="cov_hx_ckd_flag")
+dat14 <- merge(dat14_ab,dat14_n, by="cov_hx_ckd_flag")
+dat14 <- dat14 %>% dplyr::filter(cov_hx_ckd_flag==1)
+
+knitr::kable(dat14, digits=1, align="lrrrrrr", caption = "Chronic Kidney disease")
+```
+
+# Stillbirth
+```{r echo=FALSE}
+dat15_a <- data %>% dplyr::filter(vacc_covid=="Exposed") %>% dplyr::group_by(cov_hx_stillbirth_flag) %>% dplyr::summarise(count=n())%>% ungroup()
+
+dat15_a <- dat15_a %>% dplyr::mutate(count_a=round_any(count,5),total=sum(count_a),perc_a=(count_a/total)*100) %>% dplyr::select(cov_hx_stillbirth_flag, count_a, perc_a)
+
+dat15_b <- data %>% dplyr::filter(vacc_covid=="Unexposed") %>% dplyr::group_by(cov_hx_stillbirth_flag) %>% dplyr::summarise(count=n())%>% ungroup()
+
+dat15_b <- dat15_b %>% dplyr::mutate(count_b=round_any(count,5),total=sum(count_b),perc_b=(count_b/total)*100) %>% dplyr::select(cov_hx_stillbirth_flag, count_b, perc_b)
+
+dat15_n <- data %>% dplyr::group_by(cov_hx_stillbirth_flag) %>% dplyr::summarise(count=n())%>% ungroup()
+
+dat15_n <- dat15_n %>% dplyr::mutate(count_n=round_any(count,5),total=sum(count_n),perc_n=(count_n/total)*100) %>% dplyr::select(cov_hx_stillbirth_flag, count_n, perc_n)
+
+dat15_ab <- merge(dat15_a, dat15_b, by="cov_hx_stillbirth_flag")
+dat15 <- merge(dat15_ab,dat15_n, by="cov_hx_stillbirth_flag")
+dat15 <- dat15 %>% dplyr::filter(cov_hx_stillbirth_flag==1)
+
+knitr::kable(dat15, digits=1, align="lrrrrrr", caption = "Stillbirth")
+```
+
+# Surgery in last year
+
+```{r echo=FALSE}
+
+dat16_a <- data %>% dplyr::filter(vacc_covid=="Exposed") %>% dplyr::group_by(cov_surg_last_yr_flag) %>% dplyr::summarise(count=n())%>% ungroup()
+
+dat16_a <- dat16_a %>% dplyr::mutate(count_a=round_any(count,5),total=sum(count_a),perc_a=(count_a/total)*100) %>% dplyr::select(cov_surg_last_yr_flag, count_a, perc_a)
+
+dat16_b <- data %>% dplyr::filter(vacc_covid=="Unexposed") %>% dplyr::group_by(cov_surg_last_yr_flag) %>% dplyr::summarise(count=n())%>% ungroup()
+
+dat16_b <- dat16_b %>% dplyr::mutate(count_b=round_any(count,5),total=sum(count_b),perc_b=(count_b/total)*100) %>% dplyr::select(cov_surg_last_yr_flag, count_b, perc_b)
+
+dat16_n <- data %>% dplyr::group_by(cov_surg_last_yr_flag) %>% dplyr::summarise(count=n())%>% ungroup()
+
+dat16_n <- dat16_n %>% dplyr::mutate(count_n=round_any(count,5),total=sum(count_n),perc_n=(count_n/total)*100) %>% dplyr::select(cov_surg_last_yr_flag, count_n, perc_n)
+
+dat16_ab <- merge(dat16_a, dat16_b, by="cov_surg_last_yr_flag")
+dat16 <- merge(dat16_ab,dat16_n, by="cov_surg_last_yr_flag")
+dat16 <- dat16 %>% dplyr::filter(cov_surg_last_yr_flag==1)
+
+knitr::kable(dat16, digits=1, align="lrrrrrr", caption = "Surgery in last one year")
+```
+# Combined Oralcontraceptives
+
+```{r echo=FALSE}
+dat17_a <- data %>% dplyr::filter(vacc_covid=="Exposed") %>% dplyr::group_by(cov_meds_cocp_flag) %>% dplyr::summarise(count=n())%>% ungroup()
+
+dat17_a <- dat17_a %>% dplyr::mutate(count_a=round_any(count,5),total=sum(count_a),perc_a=(count_a/total)*100) %>% dplyr::select(cov_meds_cocp_flag, count_a, perc_a)
+
+dat17_b <- data %>% dplyr::filter(vacc_covid=="Unexposed") %>% dplyr::group_by(cov_meds_cocp_flag) %>% dplyr::summarise(count=n())%>% ungroup()
+
+dat17_b <- dat17_b %>% dplyr::mutate(count_b=round_any(count,5),total=sum(count_b),perc_b=(count_b/total)*100) %>% dplyr::select(cov_meds_cocp_flag, count_b, perc_b)
+
+dat17_n <- data %>% dplyr::group_by(cov_meds_cocp_flag) %>% dplyr::summarise(count=n())%>% ungroup()
+
+dat17_n <- dat17_n %>% dplyr::mutate(count_n=round_any(count,5), total=sum(count_n),perc_n=(count_n/total)*100) %>% dplyr::select(cov_meds_cocp_flag, count_n, perc_n)
+
+dat17_ab <- merge(dat17_a, dat17_b, by="cov_meds_cocp_flag")
+dat17 <- merge(dat17_ab,dat17_n, by="cov_meds_cocp_flag")
+dat17 <- dat17 %>% dplyr::filter(cov_meds_cocp_flag==1)
+
+knitr::kable(dat17, digits=1, align="lrrrrrr", caption = "COCP")
+```
+
+# BP lowering drugs
+```{r echo=FALSE}
+dat18_a <- data %>% dplyr::filter(vacc_covid=="Exposed") %>% dplyr::group_by(cov_meds_bp_lowering_flag) %>% dplyr::summarise(count=n())%>% ungroup()
+
+dat18_a <- dat18_a %>% dplyr::mutate(count_a=round_any(count,5),total=sum(count_a),perc_a=(count_a/total)*100) %>% dplyr::select(cov_meds_bp_lowering_flag, count_a, perc_a)
+
+dat18_b <- data %>% dplyr::filter(vacc_covid=="Unexposed") %>% dplyr::group_by(cov_meds_bp_lowering_flag) %>% dplyr::summarise(count=n())%>% ungroup()
+
+dat18_b <- dat18_b %>% dplyr::mutate(count_b=round_any(count,5),total=sum(count_b),perc_b=(count_b/total)*100) %>% dplyr::select(cov_meds_bp_lowering_flag, count_b, perc_b)
+
+dat18_n <- data %>% dplyr::group_by(cov_meds_bp_lowering_flag) %>% dplyr::summarise(count=n())%>% ungroup()
+
+dat18_n <- dat18_n %>% dplyr::mutate(count_n=round_any(count,5),total=sum(count_n),perc_n=(count_n/total)*100) %>% dplyr::select(cov_meds_bp_lowering_flag, count_n, perc_n)
+
+dat18_ab <- merge(dat18_a, dat18_b, by="cov_meds_bp_lowering_flag")
+dat18 <- merge(dat18_ab,dat18_n, by="cov_meds_bp_lowering_flag")
+dat18 <- dat18 %>% dplyr::filter(cov_meds_bp_lowering_flag==1)
+
+knitr::kable(dat18, digits=1, align="lrrrrrr", caption = "BP lowering drugs")
+```
+
+# Lipd lowering drugs
+```{r echo=FALSE}
+dat19_a <- data %>% dplyr::filter(vacc_covid=="Exposed") %>% dplyr::group_by(cov_meds_lipid_lowering_flag) %>% dplyr::summarise(count=n())%>% ungroup()
+
+dat19_a <- dat19_a %>% dplyr::mutate(count_a=round_any(count,5),total=sum(count_a),perc_a=(count_a/total)*100) %>% dplyr::select(cov_meds_lipid_lowering_flag, count_a, perc_a)
+
+dat19_b <- data %>% dplyr::filter(vacc_covid=="Unexposed") %>% dplyr::group_by(cov_meds_lipid_lowering_flag) %>% dplyr::summarise(count=n())%>% ungroup()
+
+dat19_b <- dat19_b %>% dplyr::mutate(count_b=round_any(count,5),total=sum(count_b),perc_b=(count_b/total)*100) %>% dplyr::select(cov_meds_lipid_lowering_flag, count_b, perc_b)
+
+dat19_n <- data %>% dplyr::group_by(cov_meds_lipid_lowering_flag) %>% dplyr::summarise(count=n())%>% ungroup()
+
+dat19_n <- dat19_n %>% dplyr::mutate(count_n=round_any(count,5),total=sum(count_n),perc_n=(count_n/total)*100) %>% dplyr::select(cov_meds_lipid_lowering_flag, count_n, perc_n)
+
+dat19_ab <- merge(dat19_a, dat19_b, by="cov_meds_lipid_lowering_flag")
+dat19 <- merge(dat19_ab,dat19_n, by="cov_meds_lipid_lowering_flag")
+dat19 <- dat19 %>% dplyr::filter(cov_meds_lipid_lowering_flag==1)
+
+knitr::kable(dat19, digits=1, align="lrrrrrr", caption = "Lipid lowering drugs")
+```
+
+# Immunosuppresants
+
+```{r echo=FALSE}
+dat20_a <- data %>% dplyr::filter(vacc_covid=="Exposed") %>% dplyr::group_by(cov_meds_immunosuppressants_flag) %>% dplyr::summarise(count=n())%>% ungroup()
+
+dat20_a <- dat20_a %>% dplyr::mutate(count_a=round_any(count,5),total=sum(count_a),perc_a=(count_a/total)*100) %>% dplyr::select(cov_meds_immunosuppressants_flag, count_a, perc_a)
+
+dat20_b <- data %>% dplyr::filter(vacc_covid=="Unexposed") %>% dplyr::group_by(cov_meds_immunosuppressants_flag) %>% dplyr::summarise(count=n())%>% ungroup()
+
+dat20_b <- dat20_b %>% dplyr::mutate(count_b=round_any(count,5),total=sum(count_b),perc_b=(count_b/total)*100) %>% dplyr::select(cov_meds_immunosuppressants_flag, count_b, perc_b)
+
+dat20_n <- data %>% dplyr::group_by(cov_meds_immunosuppressants_flag) %>% dplyr::summarise(count=n())%>% ungroup()
+
+dat20_n <- dat20_n %>% dplyr::mutate(count_n=round_any(count,5),total=sum(count_n),perc_n=(count_n/total)*100) %>% dplyr::select(cov_meds_immunosuppressants_flag, count_n, perc_n)
+
+dat20_ab <- merge(dat20_a, dat20_b, by="cov_meds_immunosuppressants_flag")
+dat20 <- merge(dat20_ab,dat20_n, by="cov_meds_immunosuppressants_flag")
+dat20 <- dat20 %>% dplyr::filter(cov_meds_immunosuppressants_flag==1)
+
+knitr::kable(dat20, digits=1, align="lrrrrrr", caption = "Immunosuppresants")
+```
+
+# Anticoagulants
+```{r echo=FALSE}
+dat21_a <- data %>% dplyr::filter(vacc_covid=="Exposed") %>% dplyr::group_by(cov_meds_anticoagulant_flag) %>% dplyr::summarise(count=n())%>% ungroup()
+
+dat21_a <- dat21_a %>% dplyr::mutate(count_a=round_any(count,5),total=sum(count_a),perc_a=(count_a/total)*100) %>% dplyr::select(cov_meds_anticoagulant_flag, count_a, perc_a)
+
+dat21_b <- data %>% dplyr::filter(vacc_covid=="Unexposed") %>% dplyr::group_by(cov_meds_anticoagulant_flag) %>% dplyr::summarise(count=n())%>% ungroup()
+
+dat21_b <- dat21_b %>% dplyr::mutate(count_b=round_any(count,5),total=sum(count_b),perc_b=(count_b/total)*100) %>% dplyr::select(cov_meds_anticoagulant_flag, count_b, perc_b)
+
+dat21_n <- data %>% dplyr::group_by(cov_meds_anticoagulant_flag) %>% dplyr::summarise(count=n())%>% ungroup()
+
+dat21_n <- dat21_n %>% dplyr::mutate(count_n=round_any(count,5),total=sum(count_n),perc_n=(count_n/total)*100) %>% dplyr::select(cov_meds_anticoagulant_flag, count_n, perc_n)
+
+dat21_ab <- merge(dat21_a, dat21_b, by="cov_meds_anticoagulant_flag")
+dat21 <- merge(dat21_ab,dat21_n, by="cov_meds_anticoagulant_flag")
+dat21 <- dat21 %>% dplyr::filter(cov_meds_anticoagulant_flag==1)
+
+knitr::kable(dat21, digits=1, align="lrrrrrr", caption = "Anticoagulants")
+```
+
+# Hormone replacement
+```{r echo=FALSE}
+dat22_a <- data %>% dplyr::filter(vacc_covid=="Exposed") %>% dplyr::group_by(cov_meds_hrt_flag) %>% dplyr::summarise(count=n())%>% ungroup()
+
+dat22_a <- dat22_a %>% dplyr::mutate(count_a=round_any(count,5),total=sum(count_a),perc_a=(count_a/total)*100) %>% dplyr::select(cov_meds_hrt_flag, count_a, perc_a)
+
+dat22_b <- data %>% dplyr::filter(vacc_covid=="Unexposed") %>% dplyr::group_by(cov_meds_hrt_flag) %>% dplyr::summarise(count=n())%>% ungroup()
+
+dat22_b <- dat22_b %>% dplyr::mutate(count_b=round_any(count,5),total=sum(count_b),perc_b=(count_b/total)*100) %>% dplyr::select(cov_meds_hrt_flag, count_b, perc_b)
+
+dat22_n <- data %>% dplyr::group_by(cov_meds_hrt_flag) %>% dplyr::summarise(count=n())%>% ungroup()
+
+dat22_n <- dat22_n %>% dplyr::mutate(count_n=round_any(count,5),total=sum(count_n),perc_n=(count_n/total)*100) %>% dplyr::select(cov_meds_hrt_flag, count_n, perc_n)
+
+dat22_ab <- merge(dat22_a, dat22_b, by="cov_meds_hrt_flag")
+dat22 <- merge(dat22_ab,dat22_n, by="cov_meds_hrt_flag")
+dat22 <- dat22 %>% dplyr::filter(cov_meds_hrt_flag==1)
+
+knitr::kable(dat22, digits=1, align="lrrrrrr", caption = "Hormone replacement drug")
+```
+# Smoking status
+
+```{r echo=FALSE}
+dat22_a <- data %>% dplyr::filter(vacc_covid=="Exposed") %>% dplyr::group_by(cov_smoking_status) %>% dplyr::summarise(count=n())%>% ungroup()
+
+dat22_a <- dat22_a %>% dplyr::mutate(count_a=round_any(count,5),total=sum(count_a),perc_a=(count_a/total)*100) %>% dplyr::select(cov_smoking_status, count_a, perc_a)
+
+dat22_b <- data %>% dplyr::filter(vacc_covid=="Unexposed") %>% dplyr::group_by(cov_smoking_status) %>% dplyr::summarise(count=n())%>% ungroup()
+
+dat22_b <- dat22_b %>% dplyr::mutate(count_b=round_any(count,5),total=sum(count_b),perc_b=(count_b/total)*100) %>% dplyr::select(cov_smoking_status, count_b, perc_b)
+
+dat22_n <- data %>% dplyr::group_by(cov_smoking_status) %>% dplyr::summarise(count=n())%>% ungroup()
+
+dat22_n <- dat22_n %>% dplyr::mutate(count_n=round_any(count,5),total=sum(count_n),perc_n=(count_n/total)*100) %>% dplyr::select(cov_smoking_status, count_n, perc_n)
+
+dat22_ab <- merge(dat22_a, dat22_b, by="cov_smoking_status")
+dat22 <- merge(dat22_ab,dat22_n, by="cov_smoking_status")
+
+knitr::kable(dat22, digits=1, align="lrrrrrr", caption = "Smoking status")
+```
+
+# Depression and Anxiety
+
+```{r echo=FALSE}
+dat23_a <- data %>% dplyr::filter(vacc_covid=="Exposed") %>% dplyr::group_by(cov_hx_depr_anx) %>% dplyr::summarise(count=n())%>% ungroup()
+
+dat23_a <- dat23_a %>% dplyr::mutate(count_a=round_any(count,5),total=sum(count_a),perc_a=(count_a/total)*100) %>% dplyr::select(cov_hx_depr_anx, count_a, perc_a)
+
+dat23_b <- data %>% dplyr::filter(vacc_covid=="Unexposed") %>% dplyr::group_by(cov_hx_depr_anx) %>% dplyr::summarise(count=n())%>% ungroup()
+
+dat23_b <- dat23_b %>% dplyr::mutate(count_b=round_any(count,5),total=sum(count_b),perc_b=(count_b/total)*100) %>% dplyr::select(cov_hx_depr_anx, count_b, perc_b)
+
+dat23_n <- data %>% dplyr::group_by(cov_hx_depr_anx) %>% dplyr::summarise(count=n())%>% ungroup()
+
+dat23_n <- dat23_n %>% dplyr::mutate(count_n=round_any(count,5),total=sum(count_n),perc_n=(count_n/total)*100) %>% dplyr::select(cov_hx_depr_anx, count_n, perc_n)
+
+dat23_ab <- merge(dat23_a, dat23_b, by="cov_hx_depr_anx")
+dat23 <- merge(dat23_ab,dat23_n, by="cov_hx_depr_anx")
+
+knitr::kable(dat23, digits=1,caption = "Depression/Anxiety")
+```
