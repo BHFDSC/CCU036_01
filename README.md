@@ -1,4 +1,6 @@
-# COVID-19 vaccination and future birth outcomes: findings from an England-wide cohort study of 186,990 women vaccinated before pregnancy
+# COVID-19 vaccination and birth outcomes of 186,990 women vaccinated before pregnancy: an England-wide cohort study
+
+**Arun K. Suseeladevi, Rachel Denholm, Matthew Retford, Elena Raffetti, Christy Burden, Katherine Birchenall, Victoria Male, Venexia Walker, Christopher Tomlinson, Angela M. Wood, Luisa Zuccolo, on behalf of the CVD-COVID-UK/COVID-IMPACT Consortium**
 
 ## Project description
 
@@ -7,7 +9,7 @@ COVID-19 vaccination in pregnancy is recommended by the World Health Organisatio
 Here we investigated the association between starting a course of COVID-19 vaccination before pregnancy and future birth outcomes.
 
 ## How to cite this work
-> Citation details to follow
+> Citation details to follow - https://doi.org/10.1016/j.lanepe.2024.101025
 
 ## Contents
 
